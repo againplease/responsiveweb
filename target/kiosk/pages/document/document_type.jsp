@@ -8,15 +8,24 @@
     <title>Documentation</title>
     <style>
         * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
         }
 
         body {
-            padding: 30px;
-            background-color: #f8f9fa;
+            flex: 1 0 auto;
+            padding-top: 120px; /* Kept for fixed header from menubar.jsp */
         }
 
         .back-button {
@@ -31,12 +40,12 @@
             height: 80px;
         }
 
+        /* Title styling (adapted from first document.jsp) */
         .page-title {
             text-align: center;
-            margin: 80px 0 20px;
             font-size: 65px;
             font-weight: bold;
-            margin-top: 190px;
+            padding-top: 30px;
         }
 
         .sub-title {
@@ -91,28 +100,176 @@
             background-color: #f4511e;
         }
 
-        /* Specific styles for vertical screens (including 1080x1920) */
+        /* Responsive Design (updated page-title to match first document.jsp breakpoints) */
+        @media screen and (min-width: 1026px) {
+            .page-title {
+                font-size: 50px;
+                padding-top: 50px;
+            }
+            .sub-title {
+                font-size: 26px;
+                margin: 20px 0 10px;
+            }
+            .document-list {
+                max-width: 700px;
+                width: 100%;
+                padding-bottom: 20px;
+            }
+            .document-item {
+                padding: 35px 40px;
+                margin: 45px 0;
+                font-size: 22px;
+                border-radius: 15px;
+            }
+            .send-email-btn {
+                max-width: 500px;
+                padding: 15px;
+                font-size: 22px;
+                margin: 50px auto;
+                border-radius: 10px;
+            }
+            .back-button {
+                top: 40px;
+                left: 40px;
+            }
+            .back-button img {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        @media screen and (max-width: 1025px) {
+            .page-title {
+                font-size: 50px;
+                padding-top: 100px;
+            }
+            .sub-title {
+                font-size: 24px;
+                margin: 15px 0 5px;
+            }
+            .document-list {
+                max-width: 600px;
+                margin-bottom: 60px;
+                width: 100%;
+            }
+            .document-item {
+                padding: 35px 40px;
+                margin: 35px 0;
+                font-size: 20px;
+                border-radius: 12px;
+            }
+            .send-email-btn {
+                max-width: 450px;
+                padding: 15px;
+                font-size: 20px;
+                margin: 40px auto;
+                border-radius: 10px;
+            }
+            .back-button {
+                top: 30px;
+                left: 30px;
+            }
+            .back-button img {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .page-title {
+                font-size: 35px;
+                padding-top: 30px;
+                margin-top: 50px;
+            }
+            .sub-title {
+                font-size: 20px;
+                margin: 15px 0 -10px;
+            }
+            .document-list {
+                padding: 0 20px;
+                margin-bottom: 150px
+            }
+            .document-item {
+                padding: 35px 40px;
+                margin: 40px 0;
+                font-size: 18px;
+                border-radius: 10px;
+            }
+            .send-email-btn {
+                max-width: 300px;
+                padding: 12px;
+                font-size: 18px;
+                margin: 30px auto;
+                border-radius: 8px;
+            }
+            .back-button {
+                top: 20px;
+                left: 20px;
+            }
+            .back-button img {
+                width: 35px;
+                height: 35px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .page-title {
+                font-size: 30px;
+                padding-top: 40px;
+                margin-top: 50px;
+            }
+            .sub-title {
+                font-size: 18px;
+                margin: 15px 0 5px;
+            }
+            .document-list {
+                padding: 0 10px;
+            }
+            .document-item {
+                padding: 30px 25px;
+                margin: 25px 0;
+                font-size: 16px;
+                border-radius: 8px;
+            }
+            .send-email-btn {
+                max-width: 250px;
+                padding: 10px;
+                font-size: 16px;
+                margin: 25px auto;
+                border-radius: 6px;
+            }
+            .back-button {
+                top: 15px;
+                left: 15px;
+            }
+            .back-button img {
+                width: 30px;
+                height: 30px;
+            }
+        }
+
+        /* Remove the portrait-specific media query to align with first document.jsp */
         @media screen and (orientation: portrait) and (min-width: 1080px) {
             body {
                 padding: 40px;
             }
-
             .page-title {
-                font-size: 65px;
+                font-size: 50px;
+                padding-top: 150px;
             }
-
             .sub-title {
                 font-size: 40px;
                 margin: 40px 0 60px;
             }
-
+            .document-list {
+                max-width: 900px;
+            }
             .document-item {
                 padding: 35px 40px;
                 margin: 60px 0;
                 font-size: 40px;
                 border-radius: 40px;
             }
-
             .send-email-btn {
                 max-width: 900px;
                 padding: 25px;
@@ -123,20 +280,12 @@
     </style>
 </head>
 <body>
-    <a href="document.jsp" class="back-button">
-        <img src="../../images/back_arrow.png" alt="Back">
-    </a>
+    <jsp:include page="../menubar.jsp" />
     <h1 class="page-title">Documentation</h1>
     <h2 class="sub-title" id="docType"></h2>
 
     <div class="document-list" id="documentList">
     </div>
-
-    <button class="send-email-btn" id="emailBtn" style="display: none;" 
-            onclick="window.location.href='../fill_studentID.jsp?type=internship&formName=All Internship Documents&mode=sendAll'">
-        SEND ALL VIA EMAIL
-    </button>
-
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const docType = urlParams.get('type');
@@ -165,38 +314,19 @@
 
         // Display the appropriate document list
         const documentList = document.getElementById('documentList');
-        const contextPath = '<%= request.getContextPath() %>';
         const docs = documents[docType] || [];
         
         docs.forEach(doc => {
-        const div = document.createElement('div');
-        div.className = 'document-item';
-        div.textContent = doc.name;
-        div.onclick = function() {
-            const url = contextPath + 
-                       '/pages/document/document_details.jsp' + 
-                       '?type=' + encodeURIComponent(docType) + 
-                       '&formName=' + encodeURIComponent(doc.name) + 
-                       '&link=' + encodeURIComponent(doc.link) +
-                       '&description=' + encodeURIComponent(doc.description);
-            window.location.href = url;
-        };
-        documentList.appendChild(div);
+            const div = document.createElement('div');
+            div.className = 'document-item';
+            div.textContent = doc.name;
+            div.onclick = function() {
+                // Open the document link directly instead of redirecting to document_detail.jsp
+                window.open(doc.link, '_blank');
+            };
+            documentList.appendChild(div);
         });
-
-        // Show email button only for internship
-        if (docType === 'Internship') {
-            document.getElementById('emailBtn').style.display = 'block';
-        }
     </script>
-    <script type="text/javascript">
-        // Function to redirect to the welcome page after 3 minutes (180000 milliseconds)
-        function redirectToWelcomePage() {
-            window.location.href = '../welcome.jsp'; 
-        }
-    
-        // Set a timer to call the redirect function after 3 minutes
-        setTimeout(redirectToWelcomePage, 180000);  // 180000 milliseconds = 3 minutes
-    </script>
+    <jsp:include page="../footer.jsp" />
 </body>
 </html>

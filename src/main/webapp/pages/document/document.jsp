@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Documentation</title>
     <style>
+        /* Base styles */
         * {
             margin: 0;
             padding: 0;
@@ -13,9 +14,18 @@
             font-family: Arial, sans-serif;
         }
 
-        body {
-            padding: 30px;
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
             background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body {
+            flex: 1 0 auto;
+            padding-top: 120px; /* Kept for fixed header from menubar.jsp */
         }
 
         .back-button {
@@ -24,19 +34,18 @@
             left: 70px;
             z-index: 100;
         }
-    
+
         .back-button img {
             width: 80px;
             height: 80px;
         }
 
+        /* Title styling (adapted from event.jsp) */
         .page-title {
             text-align: center;
-            margin: 80px 0 20px;
             font-size: 65px;
             font-weight: bold;
-            margin-top: 190px;
-            margin-bottom:100px;
+            padding-top: 30px;
         }
 
         .document-grid {
@@ -77,62 +86,175 @@
             color: black;
             font-weight: 600;
         }
+
         .document-card:hover .document-title {
             color: white;
         }
 
+        /* Responsive Design (updated page-title to match event.jsp breakpoints) */
+        @media screen and (min-width: 1026px) {
+            .page-title {
+                font-size: 50px;
+                padding-top: 50px; /* More space for larger screens */
+                padding-bottom: 40px; /* More space for larger screens */
+            }
+            .document-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 40px;
+                max-width: 1000px;
+                padding-bottom: 60px;
+            }
+            .document-icon {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 25px;
+            }
+            .document-title {
+                font-size: 32px;
+            }
+            .back-button {
+                top: 50px;
+                left: 50px;
+            }
+            .back-button img {
+                width: 60px;
+                height: 60px;
+            }
+        }
 
-        /* Specific styles for vertical screens (including 1080x1920) */
+        @media screen and (max-width: 1025px) {
+            .page-title {
+                font-size: 50px;
+                padding-top: 100px;
+            }
+            .document-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 50px;
+                padding-bottom: 60px;
+                padding-top: 40px;
+            }
+            .document-icon {
+                width: 130px;
+                height: 130px;
+                margin-bottom: 20px;
+            }
+            .document-title {
+                font-size: 28px;
+            }
+            .back-button {
+                top: 40px;
+                left: 40px;
+            }
+            .back-button img {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .page-title {
+                font-size: 35px;
+                padding-top: 30px;
+                margin-top: 50px;
+                padding-bottom: 30px;
+            }
+            body {
+                padding: 20px;
+            }
+            .document-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 50px;
+                padding: 0 10px;
+                padding-bottom: 150px
+            }
+            .document-card {
+                padding: 20px 15px;
+                border-radius: 20px;
+            }
+            .document-icon {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 15px;
+            }
+            .document-title {
+                font-size: 18px;
+            }
+            .back-button {
+                top: 30px;
+                left: 30px;
+            }
+            .back-button img {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .page-title {
+                font-size: 30px;
+                padding-top: 40px;
+                margin-top: 50px;
+            }
+            body {
+                padding: 15px;
+            }
+            .document-grid {
+                gap: 40px;
+                grid-template-columns: repeat(2, 1fr);
+                margin-bottom: 100px;
+            }
+            .document-card {
+                padding: 20px 15px;
+                border-radius: 15px;
+            }
+            .document-icon {
+                width: 70px;
+                height: 70px;
+                margin-bottom: 10px;
+            }
+            .document-title {
+                font-size: 16px;
+            }
+            .back-button {
+                top: 20px;
+                left: 20px;
+            }
+            .back-button img {
+                width: 35px;
+                height: 35px;
+            }
+        }
+
+        /* Remove the portrait-specific media query to align with event.jsp */
         @media screen and (orientation: portrait) and (min-width: 1080px) {
             body {
                 padding: 40px;
             }
-
             .page-title {
-                font-size: 65px;
+                font-size: 50px; /* Adjusted to align with min-width: 1026px */
+                padding-top: 150px; /* Adjusted to align with min-width: 1026px */
             }
-
             .document-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 80px;
                 padding: 0 40px;
             }
-
             .document-card {
                 padding: 60px 40px;
             }
-
             .document-icon {
                 width: 200px;
                 height: 200px;
                 margin-bottom: 60px;
             }
-
             .document-title {
                 font-size: 40px;
-            }
-        }
-
-        /* Adjustments for smaller screens */
-        @media (max-width: 768px) {
-            .document-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .document-grid {
-                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <a href="../other.jsp" class="back-button">
-        <img src="../../images/back_arrow.png" alt="Back"  class="back-button img">
-    </a>
-    
+    <jsp:include page="../menubar.jsp" />
     <div class="page-title">Documentation</div>
     <div class="document-grid">
         <a href="document_type.jsp?type=General" class="document-card">
@@ -155,14 +277,6 @@
             <div class="document-title">Disbursement Document</div>
         </a>
     </div>
-    <script type="text/javascript">
-        // Function to redirect to the welcome page after 3 minutes (180000 milliseconds)
-        function redirectToWelcomePage() {
-            window.location.href = '../welcome.jsp'; 
-        }
-    
-        // Set a timer to call the redirect function after 3 minutes
-        setTimeout(redirectToWelcomePage, 180000);  // 180000 milliseconds = 3 minutes
-    </script>
+    <jsp:include page="../footer.jsp" />
 </body>
 </html>
