@@ -196,12 +196,12 @@
     <jsp:include page="../menubar.jsp" />
     <div class="title">Event</div>
     <div class="container">
-        <a href="event_type.jsp?status=ongoing" class="option-box">
+        <a href="event_type_automate.jsp?status=ongoing" class="option-box">
             <img src="../../images/ongoing.png" alt="Ongoing">
             <span>Ongoing</span>
         </a>
 
-        <a href="event_type.jsp?status=finished" class="option-box">
+        <a href="event_type_automate.jsp?status=finished" class="option-box">
             <img src="../../images/finished.png" alt="Finished">
             <span>Finished</span>
         </a>
