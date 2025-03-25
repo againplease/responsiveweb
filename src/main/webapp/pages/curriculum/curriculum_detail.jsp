@@ -1,34 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="util.ConfigUtil" %>
-<%
-    String type = request.getParameter("type");
-    String pdfUrl = "";
-    String subtitle = "";
-
-    if (type != null) {
-        switch (type) {
-            case "undergraduate":
-                pdfUrl = ConfigUtil.getProperty("undergraduate.url");
-                subtitle = "Undergraduate";
-                break;
-            case "master":
-                pdfUrl = ConfigUtil.getProperty("master.url");
-                subtitle = "Master";
-                break;
-            case "phd":
-                pdfUrl = ConfigUtil.getProperty("phd.url");
-                subtitle = "Ph.D";
-                break;
-            case "aiminor":
-                pdfUrl = ConfigUtil.getProperty("aiminor.url");
-                subtitle = "AI Minor";
-                break;
-            default:
-                pdfUrl = "";
-                subtitle = "Curriculum Information";
-        }
-    }
-%>
+<%@ page import="java.sql.*, java.net.URLDecoder, bean.dBConnection" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -48,7 +19,7 @@
         .title {
             font-size: 65px;
             font-weight: bold;
-            padding-top: 120px; /* Space for sidemenu hamburger */
+            padding-top: 120px;
             margin: 0 0 20px;
         }
 
@@ -74,7 +45,6 @@
             color: #555;
         }
 
-        /* Basic responsiveness for fallback */
         @media screen and (max-width: 768px) {
             .title {
                 font-size: 32px;
@@ -111,35 +81,57 @@
 <body>
     <jsp:include page="../menubar.jsp" />
     <div class="title">Curriculum</div>
+    <%
+        String encodedUrl = request.getParameter("url");
+        String pdfUrl = encodedUrl != null ? URLDecoder.decode(encodedUrl, "UTF-8") : "";
+        String type = request.getParameter("type");
+        String subtitle = "Curriculum Information";
+        // Define safeType to escape special characters for JavaScript
+        String safeType = type != null ? type.replace("\"", "\\\"").replace("'", "\\'") : "Undergraduate";
+
+        if (pdfUrl != null && !pdfUrl.isEmpty()) {
+            try (Connection conn = dBConnection.getConnection()) {
+                String sql = "SELECT title FROM curriculum WHERE link_url = ? OR minio_url = ?";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setString(1, pdfUrl);
+                stmt.setString(2, pdfUrl);
+                ResultSet rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    subtitle = rs.getString("title");
+                }
+            } catch (Exception e) {
+                out.println("Error: " + e.getMessage());
+            }
+        }
+    %>
     <div class="subtitle"><%= subtitle %></div>
     <% if (pdfUrl != null && !pdfUrl.isEmpty()) { %>
         <p>
             <span class="pdf-link" onclick="openPdf('<%= pdfUrl %>')">Click here to view the PDF</span>
         </p>
         <p class="message">
-            After viewing, this page will return to the curriculum in 30 seconds. 
-            If the PDF doesn't open, allow pop-ups for this site and try again.
+            Pop-up was blocked. Please allow pop-ups for this site and click the link above to view the PDF.
+            This page will return to the curriculum list in 30 seconds.
         </p>
         <script>
             function openPdf(url) {
                 var pdfWindow = window.open(url, "_blank");
                 if (!pdfWindow || pdfWindow.closed || typeof pdfWindow.closed === 'undefined') {
-                    alert("Pop-up blocked! Please allow pop-ups for this site and click the link again.");
-                } else {
-                    // Start the 30-second timer only if the pop-up opens successfully
-                    setTimeout(function() {
-                        window.location.href = "<%= request.getContextPath() %>/pages/curriculum/curriculum.jsp";
-                    }, 30000);
+                    alert("Pop-up blocked! Please allow pop-ups for this site and try again.");
                 }
             }
 
-            // Attempt to open the PDF automatically on page load
             window.onload = function() {
                 openPdf("<%= pdfUrl %>");
+                setTimeout(function() {
+                    window.location.href = "<%= request.getContextPath() %>/pages/curriculum/curriculum_type.jsp?type=<%= safeType %>";
+                }, 30000);
             };
         </script>
     <% } else { %>
         <p class="no-pdf">No PDF available for this selection.</p>
     <% } %>
+    <jsp:include page="../footer.jsp" />
 </body>
 </html>

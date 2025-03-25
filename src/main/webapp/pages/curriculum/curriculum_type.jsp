@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="util.ConfigUtil" %>
+<%@ page import="java.sql.*, java.util.ArrayList, java.util.HashMap, java.util.List, java.util.Map, bean.dBConnection" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -25,7 +25,7 @@
 
         body {
             flex: 1 0 auto;
-            padding-top: 120px; /* Kept for fixed header from menubar.jsp */
+            padding-top: 120px;
         }
 
         .back-button {
@@ -40,7 +40,6 @@
             height: 80px;
         }
 
-        /* Title styling (adapted from first document.jsp) */
         .page-title {
             text-align: center;
             font-size: 65px;
@@ -100,7 +99,6 @@
             background-color: #f4511e;
         }
 
-        /* Responsive Design (updated page-title to match first document.jsp breakpoints) */
         @media screen and (min-width: 1026px) {
             .page-title {
                 font-size: 50px;
@@ -248,7 +246,6 @@
             }
         }
 
-        /* Remove the portrait-specific media query to align with first document.jsp */
         @media screen and (orientation: portrait) and (min-width: 1080px) {
             body {
                 padding: 40px;
@@ -282,51 +279,90 @@
 <body>
     <jsp:include page="../menubar.jsp" />
     <h1 class="page-title">Curriculum</h1>
-    <h2 class="sub-title" id="docType"></h2>
+    <%
+        String docType = request.getParameter("type");
+        if (docType == null || docType.isEmpty()) {
+            docType = "Undergraduate";
+        }
+        // Use the exact key as in the map, no unnecessary capitalization
+        String capitalizedDocType = docType;
+
+        // Debug output
+        out.println("<!-- docType: " + docType + ", capitalizedDocType: " + capitalizedDocType + " -->");
+    %>
+    <h2 class="sub-title"><%= capitalizedDocType %></h2>
 
     <div class="document-list" id="documentList">
+        <% 
+            Map<String, List<Map<String, String>>> documents = new HashMap<>();
+            documents.put("Undergraduate", new ArrayList<>());
+            documents.put("Master", new ArrayList<>());
+            documents.put("Doctorate", new ArrayList<>());
+            documents.put("AIMinor", new ArrayList<>());
+
+            try (Connection conn = dBConnection.getConnection()) {
+                String sql = "SELECT title, curriculum_type, link_url FROM curriculum WHERE title NOT LIKE '%Overview'";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String title = rs.getString("title");
+                    String curriculumType = rs.getString("curriculum_type");
+                    String linkUrl = rs.getString("link_url");
+
+                    Map<String, String> doc = new HashMap<>();
+                    doc.put("name", title);
+                    doc.put("link", linkUrl);
+
+                    // Debug output
+                    out.println("<!-- Processing: Title: " + title + ", Type: " + curriculumType + " -->");
+
+                    if ("undergraduate".equalsIgnoreCase(curriculumType)) {
+                        documents.get("Undergraduate").add(doc);
+                    } else if ("master".equalsIgnoreCase(curriculumType)) {
+                        documents.get("Master").add(doc);
+                    } else if ("doctorate".equalsIgnoreCase(curriculumType) || "phd".equalsIgnoreCase(curriculumType)) {
+                        documents.get("Doctorate").add(doc);
+                    } else if ("AIMinor".equalsIgnoreCase(curriculumType)) { // Match exact database value
+                        documents.get("AIMinor").add(doc);
+                    }
+                }
+            } catch (Exception e) {
+                out.println("Error: " + e.getMessage());
+                // Fallback data
+                documents.get("Undergraduate").add(Map.of("name", "Undergraduate 2018", "link", "https://drive.google.com/file/d/1XEynHM-hJvD2m3509VcJ4iZkAXYMCOSb/view"));
+                documents.get("Undergraduate").add(Map.of("name", "Undergraduate 2020", "link", "https://drive.google.com/file/d/1m4UWd5fGcpyhaaesU5xWkhyaVitwIUFG/view"));
+                documents.get("Undergraduate").add(Map.of("name", "Undergraduate 2025", "link", "https://drive.google.com/file/d/1E-9qUBH3RUVt6VltSUlPxrni7nsLaSA9/view"));
+                documents.get("Master").add(Map.of("name", "Master 2019", "link", "https://drive.google.com/file/d/1mdB3HnVz-ZVCQRZaWt7PAno4NA_YcRHy/view"));
+                documents.get("Master").add(Map.of("name", "Master 2022", "link", "https://drive.google.com/file/d/1UwbP-dSffLVKQPmIwFVu-YVNbhzFw8L3/view"));
+                documents.get("Doctorate").add(Map.of("name", "PhD 2019", "link", "https://drive.google.com/file/d/19ssnEWzB5ndjIJQOhjLG6zrC5Uvk3hXv/view"));
+                documents.get("Doctorate").add(Map.of("name", "PhD 2022", "link", "https://drive.google.com/file/d/1v0JsaguTs_Au8RjpBaKvLGyojBLo4NKO/view"));
+                documents.get("AIMinor").add(Map.of("name", "AI Minor", "link", "https://www.reg.kmitl.ac.th/curriculum/file/minor/01/AI.pdf?curr=172"));
+                documents.get("AIMinor").add(Map.of("name", "AI Minor 2022", "link", "https://www.reg.kmitl.ac.th/curriculum/file/minor/01/AI_edit_2565.pdf?curr=910"));
+            }
+
+            List<Map<String, String>> docs = documents.getOrDefault(capitalizedDocType, new ArrayList<>());
+            // Debug output
+            out.println("<!-- Docs size for " + capitalizedDocType + ": " + docs.size() + " -->");
+            for (Map<String, String> doc : docs) {
+                String name = doc.get("name");
+                String link = doc.get("link");
+                String encodedLink = java.net.URLEncoder.encode(link, "UTF-8");
+        %>
+            <div class="document-item" onclick="openCurriculum('<%= link %>', '<%= encodedLink %>', '<%= capitalizedDocType %>')">
+                <%= name %>
+            </div>
+        <% 
+            }
+        %>
     </div>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const docType = urlParams.get('type');
-        
-        document.getElementById('docType').textContent = docType.charAt(0).toUpperCase() + docType.slice(1);
-
-        // Define document lists with links from ConfigUtil
-        const documents = {
-            Undergraduate: [
-                { name: 'Undergraduate Curriculum', link: '<%= ConfigUtil.getProperty("undergraduate2018.url") %>' },
-                { name: 'Undergraduate Curriculum Revised 2020', link: '<%= ConfigUtil.getProperty("undergraduate2020.url") %>' },
-                { name: 'Undergraduate Curriculum Revised 2025', link: '<%= ConfigUtil.getProperty("undergraduate2025.url") %>' }
-            ],
-            Master: [
-                { name: 'Master Curriculum', link: '<%= ConfigUtil.getProperty("master2019.url") %>' },
-                { name: 'Master Curriculum Revised 2022', link: '<%= ConfigUtil.getProperty("master2022.url") %>' }
-            ],
-            Doctorate: [
-                { name: 'Doctorate Curriculum', link: '<%= ConfigUtil.getProperty("phd2019.url") %>' },
-                { name: 'Doctorate Curriculum Revised 2022', link: '<%= ConfigUtil.getProperty("phd2022.url") %>' }
-            ],
-            AIMinor: [
-                { name: 'AI Minor Curriculum', link: '<%= ConfigUtil.getProperty("aiminor.url") %>' },
-                { name: 'AI Minor Curriculum Revised 2022', link: '<%= ConfigUtil.getProperty("aiminor2022.url") %>' }
-            ]
-        };
-
-        // Display the appropriate document list
-        const documentList = document.getElementById('documentList');
-        const docs = documents[docType] || [];
-        
-        docs.forEach(doc => {
-            const div = document.createElement('div');
-            div.className = 'document-item';
-            div.textContent = doc.name;
-            div.onclick = function() {
-                // Open the document link directly instead of redirecting to document_detail.jsp
-                window.open(doc.link, '_blank');
-            };
-            documentList.appendChild(div);
-        });
+        function openCurriculum(url, encodedUrl, type) {
+            var pdfWindow = window.open(url, '_blank');
+            if (!pdfWindow || pdfWindow.closed || typeof pdfWindow.closed === 'undefined') {
+                window.location.href = 'curriculum_detail.jsp?url=' + encodedUrl + '&type=' + type;
+            }
+        }
     </script>
     <jsp:include page="../footer.jsp" />
 </body>

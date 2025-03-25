@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.Map" %>
+<%@ page import="java.sql.*, bean.dBConnection" %>
 <%
     // Get the 'type' parameter from the URL
     String type = request.getParameter("type");
@@ -8,39 +8,23 @@
     String title = "Event";
     String imagePath = "";
     String eventLink = "#"; // Default empty link
+    boolean eventFound = false;
 
-    if ("fukuoka".equals(type)) {
-        imagePath = "../../images/event/fukuoka.png";
-        eventLink = "https://www.facebook.com/share/1PHmmNLNSY/";
-        title = "Fukuoka Institute of Technology Webinar";
-    } else if ("AIEng".equals(type)) {
-        imagePath = "../../images/event/AIEng.png";
-        eventLink = "https://www.facebook.com/share/1HXXb9nNmd/";
-        title = "AI Engineering & Entrepreneurship Webinar";
-    } else if ("enginnopitch".equals(type)) {
-        imagePath = "../../images/event/enginnopitch.png";
-        eventLink = "https://www.facebook.com/share/152AFoX2Eq/";
-        title = "Engineering Innovation Pitch 2025";
-    } else if ("ros".equals(type)) {
-        imagePath = "../../images/event/ros.png";
-        eventLink = "https://www.facebook.com/share/182CuGbbgN/";
-        title = "ROS and Smart Robot Competition 2025";
-    } else if ("kinnoexpo".equals(type)) {
-        imagePath = "../../images/event/kinnoexpo.jpg";
-        eventLink = "https://www.facebook.com/share/1E955tG1Qy/";
-        title = "KMITL Engineering Innovation Expo 2025";
-    } else if ("readytoindustry".equals(type)) {
-        imagePath = "../../images/event/readytoindustry.jpg";
-        eventLink = "https://www.facebook.com/share/1EbMWYLDuh/";
-        title = "Ready to Industry";
-    } else if ("smartpolice".equals(type)) {
-        imagePath = "../../images/event/smartpolice.png";
-        eventLink = "https://www.facebook.com/share/1A9puD5s8H/";
-        title = "Smart Police Webinart";
-    } else if ("ernst".equals(type)) {
-        imagePath = "../../images/event/ernst.jpg";
-        eventLink = "https://www.facebook.com/share/1ERKv7miaB/";
-        title = "Ernst Mach Grant - ASEA-UNINET";
+    // Query the database for the event details
+    try (Connection conn = dBConnection.getConnection()) {
+        String sql = "SELECT title, minio_url, facebook_url FROM events WHERE type = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setString(1, type);
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next()) {
+            title = rs.getString("title");
+            imagePath = rs.getString("minio_url");
+            eventLink = rs.getString("facebook_url") != null ? rs.getString("facebook_url") : "#";
+            eventFound = true;
+        }
+    } catch (Exception e) {
+        out.println("<p>Error: " + e.getMessage() + "</p>");
     }
 %>
 
@@ -141,7 +125,7 @@
         @media screen and (min-width: 1026px) {
             .title {
                 font-size: 38px;
-                padding-top: 90px; /* More space for larger screens */
+                padding-top: 90px;
             }
         }
         @media screen and (max-width: 1025px) {
@@ -150,7 +134,6 @@
                 padding-top: 50px;
             }
         }
-        /* Media Queries for Responsive Design */
         @media screen and (max-width: 768px) {
             .title {
                 font-size: 26px;
@@ -199,7 +182,7 @@
     <jsp:include page="../menubar.jsp" />
     <div class="title"><%= title %></div>
     <div class="container">
-        <% if (!imagePath.isEmpty()) { %>
+        <% if (eventFound && !imagePath.isEmpty()) { %>
             <a href="<%= eventLink %>" class="event-link" target="_blank">
                 <img src="<%= imagePath %>" alt="<%= title %>" class="event-image">
             </a>
@@ -224,4 +207,3 @@
     </script>
 </body>
 </html>
-

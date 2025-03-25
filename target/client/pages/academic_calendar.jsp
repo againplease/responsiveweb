@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="util.ConfigUtil" %>
+<%@ page import="java.sql.*, bean.dBConnection, java.util.ArrayList, java.util.List" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,7 +17,7 @@
         body {
             background-color: #f8f9fa;
             min-height: 100%;
-            padding-top: 120px; /* Adjust for potential fixed header from sidemenu.jsp */ /* Adjust for potential fixed footer or menu */
+            padding-top: 120px;
         }
 
         .back-button {
@@ -33,7 +33,6 @@
             aspect-ratio: 1/1;
         }
 
-        /* Title styling (matched to event.jsp) */
         .page-title {
             text-align: center;
             font-size: 65px;
@@ -43,7 +42,7 @@
 
         .academic-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Always exactly 2 columns */
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
@@ -69,11 +68,10 @@
             transform: scale(1.05);
         }
 
-        /* Responsive Design */
         @media screen and (min-width: 1026px) {
             .page-title {
                 font-size: 50px;
-                padding-top: 50px; /* More space for larger screens */
+                padding-top: 50px;
                 padding-bottom: 40px;
             }
             .academic-grid{
@@ -84,7 +82,6 @@
                 row-gap: 60px;
                 padding-bottom: 60px;
             }
-
         }
 
         @media screen and (max-width: 1025px) {
@@ -139,7 +136,6 @@
                 margin-top: 50px;
                 padding-top: 30px;
             }
-            /* Keep two columns even on small screens */
             .academic-grid {
                 grid-template-columns: 1fr 1fr;
                 gap: 40px;
@@ -155,30 +151,57 @@
 <body>
     <jsp:include page="menubar.jsp" />
     <h1 class="page-title">Academic Calendar</h1>
-    <%
-        String year = request.getParameter("year");
-        String pdfPath = (year != null) ? ConfigUtil.getProperty("academic.calendar." + year) : "";
+
+    <% 
+        List<String> westernYears = new ArrayList<>();
+        List<String> thaiYears = new ArrayList<>();
+        List<String> urls = new ArrayList<>();
+
+        try (Connection conn = dBConnection.getConnection()) {
+            // Query only Western years (assuming < 3000), limit to 4
+            String sql = "SELECT title, link_url FROM academic_calendar " +
+                        "WHERE CAST(SUBSTRING(title, LENGTH('academic.calendar.') + 1) AS UNSIGNED) < 2500 " +
+                        "ORDER BY SUBSTRING(title, LENGTH('academic.calendar.') + 1) DESC LIMIT 4";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String title = rs.getString("title"); // e.g., "academic.calendar.2025"
+                String linkUrl = rs.getString("link_url");
+                String westernYear = title.replace("academic.calendar.", ""); // "2025"
+                int thaiYearNum = Integer.parseInt(westernYear) + 543; // 2568
+
+                westernYears.add(westernYear);
+                thaiYears.add(String.valueOf(thaiYearNum));
+                urls.add(linkUrl);
+            }
+        } catch (Exception e) {
+            out.println("Error: " + e.getMessage());
+        }
     %>
+
     <div class="academic-grid">
-        <div class="year-box" onclick="goToDetail(2025)">2025</div>
-        <div class="year-box" onclick="goToDetail(2568)">2568</div>
-        <div class="year-box" onclick="goToDetail(2024)">2024</div>
-        <div class="year-box" onclick="goToDetail(2567)">2567</div>
-        <div class="year-box" onclick="goToDetail(2023)">2023</div>
-        <div class="year-box" onclick="goToDetail(2566)">2566</div>
-        <div class="year-box" onclick="goToDetail(2022)">2022</div>
-        <div class="year-box" onclick="goToDetail(2565)">2565</div>
+        <% 
+            for (int i = 0; i < Math.min(westernYears.size(), 4); i++) {
+                String westernYear = westernYears.get(i);
+                String thaiYear = thaiYears.get(i);
+                String url = urls.get(i);
+        %>
+            <div class="year-box" onclick="goToDetail('<%= url %>')"><%= westernYear %></div>
+            <div class="year-box" onclick="goToDetail('<%= url %>')"><%= thaiYear %></div>
+        <% 
+            }
+        %>
     </div>
+
     <script>
-        function goToDetail(year) {
-            var pdfPath = "<%= pdfPath %>"; // Get the PDF path from JSP
-            if (pdfPath && pdfPath !== "") {
-                window.open(pdfPath, '_blank'); // Open PDF in new tab
-            } else {
-                window.location.href = "academic_calendar.jsp?year=" + year; // Redirect to same page with year parameter
+        function goToDetail(url) {
+            if (url && url !== "") {
+                window.open(url, '_blank');
             }
         }
     </script>
+
     <jsp:include page="footer.jsp" />
 </body>
 </html>

@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.*" %>
+<%@ page import="java.sql.*, bean.dBConnection" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -29,18 +29,17 @@
 
         .back-button {
             position: fixed;
-            top: 20px; /* Fixed value instead of clamp */
-            left: 20px; /* Fixed value instead of clamp */
+            top: 20px;
+            left: 20px;
             z-index: 100;
         }
     
         .back-button img {
-            width: 60px; /* Fixed value instead of clamp */
+            width: 60px;
             height: auto;
             aspect-ratio: 1/1;
         }
 
-        /* Title styling (matched to event.jsp) */
         .title {
             text-align: center;
             font-size: 65px;
@@ -49,7 +48,7 @@
         }
 
         .content {
-            padding: 0 15px 50px; /* Fixed value instead of clamp */
+            padding: 0 15px 50px;
             max-width: 900px;
             margin: 0 auto;
             width: 100%;
@@ -58,11 +57,11 @@
         .info-box {
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
-            border-radius: 20px; /* Fixed value instead of clamp */
-            padding: 20px; /* Fixed value instead of clamp */
-            margin: 30px 0; /* Fixed value instead of clamp */
+            border-radius: 20px;
+            padding: 20px;
+            margin: 30px 0;
             cursor: pointer;
-            font-size: 20px; /* Fixed value instead of clamp */
+            font-size: 20px;
             text-align: center;
             font-weight: bold;
             transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
@@ -78,18 +77,17 @@
         .subtitle-header {
             background-color: var(--primary-color);
             color: white;
-            padding: 20px; /* Fixed value instead of clamp */
+            padding: 20px;
             text-align: center;
-            margin-bottom: 30px; /* Fixed value instead of clamp */
-            margin-top: 20px; /* Fixed value instead of clamp */
-            font-size: 30px; /* Fixed value instead of clamp */
+            margin-bottom: 30px;
+            margin-top: 20px;
+            font-size: 30px;
         }
 
-        /* Responsive Design (matched to event.jsp breakpoints) */
         @media screen and (min-width: 1026px) {
             .title {
                 font-size: 50px;
-                padding-top: 150px; /* More space for larger screens */
+                padding-top: 150px;
             }
             .content {
                 padding: 0 20px 60px;
@@ -163,7 +161,7 @@
             .title {
                 font-size: 30px;
                 padding-top: 40px;
-                margin-top: 50px; /* Kept from event.jsp */
+                margin-top: 50px;
             }
             .content {
                 padding: 0 10px 30px;
@@ -184,33 +182,38 @@
     </style>
 </head>
 <body>
+    <jsp:include page="../menubar.jsp" />
     <%
         String status = request.getParameter("status");
-        Map<String, String> ongoingEvents = new LinkedHashMap<>();
-        ongoingEvents.put("fukuoka", "Fukuoka Institute of Technology Webinar");
-        ongoingEvents.put("AIEng", "AI Engineering & Entrepreneurship Webinar");
-        ongoingEvents.put("enginnopitch", "Engineering Innovation Pitch 2025");
-        ongoingEvents.put("ros", "ROS and Smart Robot Competition 2025");
-
-        Map<String, String> finishedEvents = new LinkedHashMap<>();
-        finishedEvents.put("kinnoexpo", "KMITL Engineering Innovation Expo 2025");
-        finishedEvents.put("readytoindustry", "Ready to Industry");
-        finishedEvents.put("smartpolice", "Smart Police Webinar");
-        finishedEvents.put("ernst", "Ernst Mach Grant - ASEA-UNINET");
-
-        Map<String, String> events = "finished".equals(status) ? finishedEvents : ongoingEvents;
+        if (status == null || (!status.equals("finished") && !status.equals("ongoing"))) {
+            status = "ongoing"; // Default to ongoing if status is invalid or not provided
+        }
     %>
-    <jsp:include page="../menubar.jsp" />
     <div class="title">Event</div>
     <div class="subtitle-header">
-        <%= "finished".equals(status) ? "Finished" : "Ongoing" %>
+        <%= status.equals("finished") ? "Finished" : "Ongoing" %>
     </div>
     <div class="content">
-        <% for (Map.Entry<String, String> entry : events.entrySet()) { %>
-            <div class="info-box" onclick="window.location.href='event_detail.jsp?type=<%= entry.getKey() %>'">
-                <%= entry.getValue() %>
-            </div>
-        <% } %>
+        <%
+            try (Connection conn = dBConnection.getConnection()) {
+                String sql = "SELECT type, title FROM events WHERE event_type = ? ORDER BY end_date DESC LIMIT 10";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setString(1, status); // "ongoing" or "finished"
+                ResultSet rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    String type = rs.getString("type");
+                    String title = rs.getString("title");
+        %>
+                    <div class="info-box" onclick="window.location.href='event_detail.jsp?type=<%= type %>'">
+                        <%= title %>
+                    </div>
+        <%
+                }
+            } catch (Exception e) {
+                out.println("<p>Error: " + e.getMessage() + "</p>");
+            }
+        %>
     </div>
     <jsp:include page="../footer.jsp" />
 </body>
